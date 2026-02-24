@@ -1,0 +1,11 @@
+id = "carbon"
+name = "Carbon Tracking"
+description = "Carbon footprint of your productions."
+version = "0.1.0"
+maintainer = "CGWire <contact@cg-wire.com>"
+website = "cg-wire.com/kitsu"
+license = "AGPL-3.0-only"
+frontend_project_enabled = true
+frontend_studio_enabled = true
+maintainer_name = "CGWire"
+maintainer_email = "contact@cg-wire.com"
