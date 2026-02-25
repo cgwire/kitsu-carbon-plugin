@@ -1,13 +1,6 @@
+from zou.app import db
 from zou.app.models.serializer import SerializerMixin
 from zou.app.models.base import BaseMixin
-
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, String, Float
-
-from zou.app.utils.plugins import create_plugin_metadata
-
-plugin_metadata = create_plugin_metadata("carbon")
-PluginBase = declarative_base(metadata=plugin_metadata)
 
 
 # CO2e emission factors by country (g CO2e per hour)
@@ -39,28 +32,29 @@ CARBON_FACTORS_DATA = [
 ]
 
 
-class CarbonFactor(PluginBase, BaseMixin, SerializerMixin):
+class CarbonFactor(db.Model, BaseMixin, SerializerMixin):
     """
     Carbon emission factors by country.
     Stores CO2e emission rates for rendering and workbench activities.
     """
 
     __tablename__ = "plugin_carbon_factors"
+    __table_args__ = {"extend_existing": True}
 
-    country_code = Column(String(2), primary_key=True)
-    country_name = Column(String(80), nullable=False)
-    rendering_co2e = Column(Float, nullable=False)
-    workbench_co2e = Column(Float, nullable=False)
+    country_code = db.Column(db.String(2), unique=True, nullable=False)
+    country_name = db.Column(db.String(80), nullable=False)
+    rendering_co2e = db.Column(db.Float, nullable=False)
+    workbench_co2e = db.Column(db.Float, nullable=False)
 
     @classmethod
     def seed_initial_data(cls):
         """
         Seed the database with initial carbon factor data for 23 countries.
         """
-        from zou.app import db
-
         for code, name, rendering, workbench in CARBON_FACTORS_DATA:
-            existing = cls.query.get(code)
+            existing = db.session.query(cls).filter_by(
+                country_code=code
+            ).first()
             if not existing:
                 factor = cls(
                     country_code=code,
