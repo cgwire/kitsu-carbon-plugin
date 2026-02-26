@@ -8,8 +8,9 @@ Requirements:
 Run:
     pytest tests/ -v
 """
-import pytest
-from zou.tests.base import ApiDBTestCase
+from zou.utils.test_helpers import ApiDBTestCase
+
+from sqlalchemy.orm.attributes import flag_modified
 
 from zou.app import db
 from zou.app.models.person import Person
@@ -73,6 +74,7 @@ class CarbonServicesTestCase(ApiDBTestCase):
             if person.data is None:
                 person.data = {}
             person.data["country"] = country_code
+            flag_modified(person, "data")
             db.session.commit()
 
     def _create_time_spent(self, task_id, person_id, date, duration):
@@ -306,7 +308,7 @@ class EpisodeFootprintTestCase(CarbonServicesTestCase):
 class CarbonFactorModelTestCase(CarbonServicesTestCase):
 
     def test_carbon_factors_created(self):
-        factor = CarbonFactor.query.get("FR")
+        factor = CarbonFactor.query.filter_by(country_code="FR").first()
 
         self.assertIsNotNone(factor)
         self.assertEqual(factor.country_name, "France")
@@ -321,5 +323,5 @@ class CarbonFactorModelTestCase(CarbonServicesTestCase):
         final_count = CarbonFactor.query.count()
         self.assertGreaterEqual(final_count, initial_count)
 
-        factor = CarbonFactor.query.get("FR")
+        factor = CarbonFactor.query.filter_by(country_code="FR").first()
         self.assertIsNotNone(factor)

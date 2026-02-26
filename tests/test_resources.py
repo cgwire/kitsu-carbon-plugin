@@ -8,7 +8,9 @@ Requirements:
 Run:
     pytest tests/ -v
 """
-from zou.tests.base import ApiDBTestCase
+from zou.utils.test_helpers import ApiDBTestCase
+
+from sqlalchemy.orm.attributes import flag_modified
 
 from zou.app import db
 from zou.app.models.person import Person
@@ -70,13 +72,14 @@ class CarbonResourcesTestCase(ApiDBTestCase):
             if person.data is None:
                 person.data = {}
             person.data["country"] = country_code
+            flag_modified(person, "data")
             db.session.commit()
 
 
 class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
 
     def test_get_factors(self):
-        response = self.get("/api/plugins/carbon/factors")
+        response = self.get("/plugins/carbon/factors")
 
         self.assertEqual(len(response), 2)
         codes = [f["country_code"] for f in response]
@@ -84,7 +87,7 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
         self.assertIn("US", codes)
 
     def test_get_factor_by_code(self):
-        response = self.get("/api/plugins/carbon/factors/FR")
+        response = self.get("/plugins/carbon/factors/FR")
 
         self.assertEqual(response["country_code"], "FR")
         self.assertEqual(response["country_name"], "France")
@@ -92,12 +95,12 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
         self.assertEqual(response["workbench_co2e"], 10.0)
 
     def test_get_factor_case_insensitive(self):
-        response = self.get("/api/plugins/carbon/factors/fr")
+        response = self.get("/plugins/carbon/factors/fr")
 
         self.assertEqual(response["country_code"], "FR")
 
     def test_get_factor_not_found(self):
-        self.get("/api/plugins/carbon/factors/XX", code=404)
+        self.get("/plugins/carbon/factors/XX", code=404)
 
     def test_create_factor(self):
         data = {
@@ -107,11 +110,11 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
             "workbench_co2e": 70.0,
         }
 
-        response = self.post("/api/plugins/carbon/factors", data)
+        response = self.post("/plugins/carbon/factors", data)
 
         self.assertEqual(response["country_code"], "JP")
         self.assertEqual(response["country_name"], "Japan")
-        factor = CarbonFactor.query.get("JP")
+        factor = CarbonFactor.query.filter_by(country_code="JP").first()
         self.assertIsNotNone(factor)
 
     def test_update_factor(self):
@@ -122,7 +125,7 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
             "workbench_co2e": 12.0,
         }
 
-        response = self.post("/api/plugins/carbon/factors", data)
+        response = self.post("/plugins/carbon/factors", data)
 
         self.assertEqual(response["country_name"], "France (updated)")
         self.assertEqual(response["workbench_co2e"], 12.0)
@@ -135,7 +138,7 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
             "workbench_co2e": 10.0,
         }
 
-        self.post("/api/plugins/carbon/factors", data, code=400)
+        self.post("/plugins/carbon/factors", data, code=400)
 
     def test_create_factor_missing_name(self):
         data = {
@@ -145,7 +148,7 @@ class CarbonFactorsResourceTestCase(CarbonResourcesTestCase):
             "workbench_co2e": 10.0,
         }
 
-        self.post("/api/plugins/carbon/factors", data, code=400)
+        self.post("/plugins/carbon/factors", data, code=400)
 
 
 class SequenceFootprintResourceTestCase(CarbonResourcesTestCase):
@@ -159,7 +162,7 @@ class SequenceFootprintResourceTestCase(CarbonResourcesTestCase):
         )
 
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/sequences"
         )
 
@@ -172,7 +175,7 @@ class SequenceFootprintResourceTestCase(CarbonResourcesTestCase):
 
     def test_get_sequence_footprint_empty(self):
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/sequences"
         )
 
@@ -191,7 +194,7 @@ class AssetFootprintResourceTestCase(CarbonResourcesTestCase):
         )
 
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/assets"
         )
 
@@ -212,7 +215,7 @@ class SummaryFootprintResourceTestCase(CarbonResourcesTestCase):
         )
 
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/summary"
         )
 
@@ -228,7 +231,7 @@ class SummaryFootprintResourceTestCase(CarbonResourcesTestCase):
 
     def test_get_summary_empty(self):
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/summary"
         )
 
@@ -240,7 +243,7 @@ class EpisodeFootprintResourceTestCase(CarbonResourcesTestCase):
 
     def test_get_episode_footprint(self):
         response = self.get(
-            f"/api/plugins/carbon/productions/{self.project_id}"
+            f"/plugins/carbon/productions/{self.project_id}"
             "/footprint/episodes"
         )
 
@@ -253,7 +256,7 @@ class AccessControlTestCase(CarbonResourcesTestCase):
 
     def test_unauthenticated_access_denied(self):
         self.log_out()
-        self.get("/api/plugins/carbon/factors", code=401)
+        self.get("/plugins/carbon/factors", code=401)
 
     def test_non_admin_cannot_create_factor(self):
         self.generate_fixture_user_cg_artist()
@@ -266,4 +269,4 @@ class AccessControlTestCase(CarbonResourcesTestCase):
             "workbench_co2e": 70.0,
         }
 
-        self.post("/api/plugins/carbon/factors", data, code=403)
+        self.post("/plugins/carbon/factors", data, code=403)

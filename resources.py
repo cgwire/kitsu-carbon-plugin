@@ -117,18 +117,27 @@ class CarbonFactorsResource(Resource):
         """
         permissions.check_admin_permissions()
         data = request.get_json()
+        if not data:
+            return {"error": "Request body is required"}, 400
 
-        country_code = data.get("country_code", "").upper()[:2]
+        raw_country_code = data.get("country_code", "")
+        country_code = raw_country_code.upper().strip()
         country_name = data.get("country_name", "")
-        rendering_co2e = float(data.get("rendering_co2e", 0))
-        workbench_co2e = float(data.get("workbench_co2e", 0))
+
+        try:
+            rendering_co2e = float(data.get("rendering_co2e", 0))
+            workbench_co2e = float(data.get("workbench_co2e", 0))
+        except (ValueError, TypeError):
+            return {
+                "error": "rendering_co2e and workbench_co2e " "must be numeric"
+            }, 400
 
         if not country_code or len(country_code) != 2:
             return {"error": "Invalid country_code"}, 400
         if not country_name:
             return {"error": "country_name is required"}, 400
 
-        factor = CarbonFactor.query.get(country_code)
+        factor = CarbonFactor.query.filter_by(country_code=country_code).first()
         if factor:
             factor.country_name = country_name
             factor.rendering_co2e = rendering_co2e
@@ -197,7 +206,9 @@ class CarbonFactorResource(Resource):
           404:
             description: Country not found
         """
-        factor = CarbonFactor.query.get(country_code.upper())
+        factor = CarbonFactor.query.filter_by(
+            country_code=country_code.upper()
+        ).first()
         if not factor:
             return {"error": "Country not found"}, 404
         return {
@@ -274,6 +285,7 @@ class StudioFootprintResource(Resource):
                       type: number
         """
         data = services.get_studio_footprint_data()
+        weekly = services.get_weekly_change()
 
         return {
             "details": data["details"],
@@ -281,9 +293,8 @@ class StudioFootprintResource(Resource):
             "by_project": data["by_project"],
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
+            "weekly_change_percent": weekly["percent_change"],
         }
 
 
@@ -381,9 +392,7 @@ class ProductionSequenceFootprintResource(Resource):
             "by_sequence": data["by_sequence"],
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
         }
 
 
@@ -481,9 +490,7 @@ class ProductionEpisodeFootprintResource(Resource):
             "by_episode": data["by_episode"],
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
         }
 
 
@@ -581,9 +588,7 @@ class ProductionAssetFootprintResource(Resource):
             "by_asset_type": data["by_asset_type"],
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
         }
 
 
@@ -649,6 +654,7 @@ class ProductionTaskTypeFootprintResource(Resource):
         project = projects_service.get_project(project_id)
 
         data = services.get_task_type_footprint_data(project_id)
+        weekly = services.get_weekly_change(project_id)
 
         return {
             "project_id": project_id,
@@ -656,9 +662,8 @@ class ProductionTaskTypeFootprintResource(Resource):
             "details": data["details"],
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
+            "weekly_change_percent": weekly["percent_change"],
         }
 
 
@@ -727,9 +732,7 @@ class ProductionFootprintSummaryResource(Resource):
             "project_name": project.get("name", ""),
             "total_co2_kg": round(data["total_co2_grams"] / 1000, 4),
             "total_duration_minutes": data["total_duration_minutes"],
-            "total_man_days": round(
-                data["total_duration_minutes"] / 60 / 8, 2
-            ),
+            "total_man_days": round(data["total_duration_minutes"] / 60 / 8, 2),
             "weekly_average_co2_kg": round(
                 data["weekly_average_co2_grams"] / 1000, 4
             ),

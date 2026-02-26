@@ -7,10 +7,29 @@ Requirements:
 """
 import pytest
 
-from zou.app import db
-from zou.app.models.person import Person
+from flask import Blueprint
+from sqlalchemy.orm.attributes import flag_modified
 
+from zou.app import app, db
+from zou.app.models.person import Person
+from zou.app.utils.api import configure_api_from_blueprint
+
+from carbon import routes
 from carbon.models import CarbonFactor
+
+
+def _register_plugin_blueprint():
+    """
+    Register the carbon plugin blueprint with the test app if not already
+    registered.
+    """
+    if "carbon" not in app.blueprints:
+        blueprint = Blueprint("carbon", "carbon")
+        configure_api_from_blueprint(blueprint, routes)
+        app.register_blueprint(blueprint, url_prefix="/plugins/carbon")
+
+
+_register_plugin_blueprint()
 
 
 @pytest.fixture
@@ -54,5 +73,6 @@ def set_person_country(person_id, country_code):
         if person.data is None:
             person.data = {}
         person.data["country"] = country_code
+        flag_modified(person, "data")
         db.session.commit()
     return person
