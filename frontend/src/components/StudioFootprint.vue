@@ -7,20 +7,15 @@
       </div>
       <div class="header-right">
         <div class="unit-toggle">
-          <button
-            :class="{ active: unit === 'kg' }"
-            @click="unit = 'kg'"
-          >kgCO2e</button>
-          <button
-            :class="{ active: unit === 't' }"
-            @click="unit = 't'"
-          >tCO2e</button>
+          <button :class="{ active: unit === 'kg' }" @click="unit = 'kg'">
+            kgCO2e
+          </button>
+          <button :class="{ active: unit === 't' }" @click="unit = 't'">
+            tCO2e
+          </button>
         </div>
         <button class="info-btn" @click="showInfo = true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 16v-4M12 8h.01"/>
-          </svg>
+          <info :size="20" />
         </button>
       </div>
     </header>
@@ -33,39 +28,45 @@
         <div class="stat-card">
           <div class="stat-header">
             <span>Total Studio Emissions</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-            </svg>
+            <cloud :size="20" />
           </div>
           <div class="stat-value">
             <span class="value">{{ formatValue(data.total_co2_kg) }}</span>
-            <span class="unit">{{ unit === 'kg' ? 'kgCO2e' : 'tCO2e' }}</span>
+            <span class="unit">{{ unit === "kg" ? "kgCO2e" : "tCO2e" }}</span>
+          </div>
+          <div
+            v-if="data.weekly_change_percent !== undefined"
+            class="weekly-change"
+            :class="weeklyChangeClass"
+          >
+            <trending-up v-if="data.weekly_change_percent > 0" :size="14" />
+            <trending-down
+              v-else-if="data.weekly_change_percent < 0"
+              :size="14"
+            />
+            <minus v-else :size="14" />
+            <span>{{ weeklyChangeLabel }} vs last week</span>
           </div>
         </div>
 
         <div class="stat-card">
           <div class="stat-header">
-            <span>Active Productions</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
+            <span>Weekly Average Emissions</span>
+            <calendar :size="20" />
           </div>
           <div class="stat-value">
-            <span class="value">{{ productionCount }}</span>
-            <span class="unit">productions</span>
+            <span class="value">{{ formatValue(weeklyAverage) }}</span>
+            <span class="unit"
+              >{{ unit === "kg" ? "kgCO2e" : "tCO2e" }} / week</span
+            >
           </div>
-          <div class="stat-subtitle">With logged time entries</div>
+          <div class="stat-subtitle">Based on logged time</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-header">
             <span>Total Man-Days</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
+            <users :size="20" />
           </div>
           <div class="stat-value">
             <span class="value">{{ formatNumber(data.total_man_days) }}</span>
@@ -79,45 +80,56 @@
         <button
           :class="{ active: activeTab === 'matrix' }"
           @click="activeTab = 'matrix'"
-        >Matrix view</button>
+        >
+          Matrix view
+        </button>
         <button
           :class="{ active: activeTab === 'breakdown' }"
           @click="activeTab = 'breakdown'"
-        >Production breakdown</button>
+        >
+          Production breakdown
+        </button>
       </div>
 
-      <div v-if="activeTab === 'matrix'" class="matrix-view">
+      <div v-if="activeTab === 'matrix'" class="matrix-view table-scroll">
         <table class="matrix-table">
           <thead>
             <tr>
               <th>PRODUCTIONS</th>
-              <th>ALL STEPS</th>
-              <th v-for="tt in taskTypes" :key="tt">{{ tt }}</th>
+              <th style="text-align: center">ALL STEPS</th>
+              <th
+                v-for="tt in taskTypes"
+                :key="tt"
+                :style="taskTypeHeaderStyle(tt)"
+              >
+                {{ tt }}
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr class="total-row">
               <td>All Productions</td>
-              <td :class="getImpactClass(data.total_co2_kg)">
+              <td>
                 {{ formatValue(data.total_co2_kg) }}
               </td>
               <td
                 v-for="tt in taskTypes"
                 :key="tt"
-                :class="getImpactClass(getTaskTypeTotal(tt))"
+                :style="taskTypeCellStyle(tt)"
               >
                 {{ formatValue(getTaskTypeTotal(tt)) }}
               </td>
             </tr>
             <tr v-for="prod in productions" :key="prod.name">
               <td>{{ prod.name }}</td>
-              <td :class="getImpactClass(prod.total)">
+              <td>
                 {{ formatValue(prod.total) }}
               </td>
               <td
                 v-for="tt in taskTypes"
                 :key="tt"
                 :class="getImpactClass(getProductionTaskType(prod.name, tt))"
+                :style="taskTypeCellStyle(tt)"
               >
                 {{ formatValueOrDash(getProductionTaskType(prod.name, tt)) }}
               </td>
@@ -126,13 +138,13 @@
         </table>
         <div class="legend">
           <span class="legend-item">
-            <span class="dot low"></span> Low Impact
+            <span class="dot low"></span> Lowest Impact
           </span>
           <span class="legend-item">
             <span class="dot medium"></span> Medium Impact
           </span>
           <span class="legend-item">
-            <span class="dot high"></span> High Impact
+            <span class="dot high"></span> Highest Impact
           </span>
         </div>
       </div>
@@ -147,7 +159,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="prod in sortedProductions" :key="prod.name">
+            <tr v-for="prod in productions" :key="prod.name">
               <td>{{ prod.name }}</td>
               <td class="bar-cell">
                 <div class="bar-track">
@@ -169,9 +181,9 @@
     </template>
 
     <div v-if="showInfo" class="modal-overlay" @click.self="showInfo = false">
-      <div class="modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
         <div class="modal-header">
-          <h2>How is carbon calculated?</h2>
+          <h2 id="info-modal-title">How is carbon calculated?</h2>
           <button class="close-btn" @click="showInfo = false">&times;</button>
         </div>
         <p class="modal-text">
@@ -180,20 +192,38 @@
         </p>
         <div class="formula">
           <span>Work Time</span>
-          <span class="operator">&times;</span>
+          <span class="operator">x</span>
           <span>People</span>
-          <span class="operator">&times;</span>
+          <span class="operator">x</span>
           <span class="highlight">Carbon Factor</span>
         </div>
         <div class="factors-section">
           <h3>WHAT'S INCLUDED IN THE CARBON FACTOR :</h3>
-          <div class="factor-tags">
-            <span class="factor-tag">Workstation</span>
-            <span class="factor-tag">Building Energy</span>
-            <span class="factor-tag">Electricity Mix</span>
-            <span class="factor-tag">Meals</span>
-            <span class="factor-tag">Cloud & Infra</span>
-            <span class="factor-tag">Commute</span>
+          <div class="factor-grid">
+            <div class="factor-item">
+              <monitor :size="18" />
+              <span>Workstation</span>
+            </div>
+            <div class="factor-item">
+              <building2 :size="18" />
+              <span>Building Energy</span>
+            </div>
+            <div class="factor-item">
+              <zap :size="18" />
+              <span>Electricity Mix</span>
+            </div>
+            <div class="factor-item">
+              <utensils-crossed :size="18" />
+              <span>Meals</span>
+            </div>
+            <div class="factor-item">
+              <cloud :size="18" />
+              <span>Cloud & Infra</span>
+            </div>
+            <div class="factor-item">
+              <train-front :size="18" />
+              <span>Commute</span>
+            </div>
           </div>
         </div>
       </div>
@@ -202,134 +232,228 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useMainStore } from '../stores/main'
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import {
+  Cloud,
+  Calendar,
+  Users,
+  Info,
+  Monitor,
+  Building2,
+  Zap,
+  UtensilsCrossed,
+  TrainFront,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-vue-next";
+import { useMainStore } from "../stores/main";
 
-const store = useMainStore()
+const store = useMainStore();
 
-const loading = ref(true)
-const error = ref(null)
-const unit = ref('kg')
-const activeTab = ref('matrix')
-const showInfo = ref(false)
+const loading = ref(true);
+const error = ref(null);
+const unit = ref(localStorage.getItem("carbon-unit") || "kg");
+const activeTab = ref(localStorage.getItem("carbon-tab") || "matrix");
+
+watch(unit, (v) => localStorage.setItem("carbon-unit", v));
+watch(activeTab, (v) => localStorage.setItem("carbon-tab", v));
+const showInfo = ref(false);
 const data = ref({
   details: [],
   by_project: {},
   by_task_type: {},
   total_co2_kg: 0,
   total_man_days: 0,
-})
+});
+
+const allTaskTypes = computed(() => {
+  if (store.taskTypes.length > 0) {
+    return store.taskTypes.map((tt) => tt.name).sort();
+  }
+  const types = new Set();
+  data.value.details.forEach((item) => types.add(item.task_type_name));
+  return Array.from(types).sort();
+});
 
 const taskTypes = computed(() => {
-  if (store.taskTypes.length > 0) {
-    return store.taskTypes.map((tt) => tt.name).sort()
-  }
-  const types = new Set()
-  data.value.details.forEach((item) => types.add(item.task_type_name))
-  return Array.from(types).sort()
-})
+  return allTaskTypes.value.filter((tt) => {
+    return productions.value.some((prod) => prod.taskTypes[tt] > 0);
+  });
+});
 
 const productions = computed(() => {
-  const prodMap = {}
-  data.value.details.forEach(item => {
+  const prodMap = {};
+  data.value.details.forEach((item) => {
     if (!prodMap[item.project_name]) {
-      prodMap[item.project_name] = { name: item.project_name, total: 0, taskTypes: {} }
+      prodMap[item.project_name] = {
+        name: item.project_name,
+        total: 0,
+        taskTypes: {},
+      };
     }
-    prodMap[item.project_name].total += item.co2_kg
-    prodMap[item.project_name].taskTypes[item.task_type_name] = item.co2_kg
-  })
-  return Object.values(prodMap).sort((a, b) => b.total - a.total)
-})
+    prodMap[item.project_name].total += item.co2_kg;
+    prodMap[item.project_name].taskTypes[item.task_type_name] = item.co2_kg;
+  });
+  return Object.values(prodMap).sort((a, b) => b.total - a.total);
+});
 
-const sortedProductions = computed(() => {
-  return [...productions.value].sort((a, b) => b.total - a.total)
-})
+const weeklyChangeClass = computed(() => {
+  const pct = data.value.weekly_change_percent || 0;
+  if (pct > 0) return "change-up";
+  if (pct < 0) return "change-down";
+  return "change-neutral";
+});
 
-const productionCount = computed(() => {
-  return productions.value.length
-})
+const weeklyChangeLabel = computed(() => {
+  const pct = data.value.weekly_change_percent || 0;
+  if (pct > 0) return `+${pct}%`;
+  if (pct < 0) return `${pct}%`;
+  return "0%";
+});
+
+const weeklyAverage = computed(() => {
+  const prods = store.openProductions;
+  if (prods.length === 0) return 0;
+  let oldest = null;
+  let latest = null;
+  prods.forEach((p) => {
+    if (p.start_date) {
+      const d = new Date(p.start_date);
+      if (!oldest || d < oldest) oldest = d;
+    }
+    if (p.end_date) {
+      const d = new Date(p.end_date);
+      if (!latest || d > latest) latest = d;
+    }
+  });
+  if (!oldest) return 0;
+  if (!latest) latest = new Date();
+  const ms = latest - oldest;
+  const weeks = Math.max(ms / (7 * 24 * 60 * 60 * 1000), 1);
+  return data.value.total_co2_kg / weeks;
+});
 
 const maxEmission = computed(() => {
-  return Math.max(...productions.value.map(p => p.total), 1)
-})
+  if (productions.value.length === 0) return 1;
+  return Math.max(...productions.value.map((p) => p.total));
+});
 
 function formatValue(kg) {
-  if (unit.value === 't') {
-    return (kg / 1000).toFixed(2)
+  if (unit.value === "t") {
+    return (kg / 1000).toFixed(2);
   }
   if (kg >= 1000) {
-    return Math.round(kg).toLocaleString()
+    return Math.round(kg).toLocaleString();
   }
   if (kg >= 1) {
-    return kg.toFixed(1)
+    return kg.toFixed(1);
   }
-  return kg.toFixed(2)
+  return kg.toFixed(2);
 }
 
 function formatValueOrDash(kg) {
-  if (kg === 0) return '-'
-  return formatValue(kg)
+  if (kg === 0) return "-";
+  return formatValue(kg);
 }
 
 function formatNumber(num) {
-  return Math.round(num).toLocaleString()
+  return Math.round(num).toLocaleString();
 }
 
 function getImpactClass(kg) {
-  if (kg === 0) return 'low'
-  const max = maxEmission.value
-  const ratio = kg / max
-  if (ratio >= 0.66) return 'high'
-  if (ratio >= 0.33) return 'medium'
-  return 'low'
+  if (kg === null || kg === undefined || kg === 0) return "";
+  const max = maxEmission.value;
+  if (max === 0) return "low";
+  const ratio = kg / max;
+  if (ratio >= 0.66) return "high";
+  if (ratio >= 0.33) return "medium";
+  return "low";
 }
 
 function getTaskTypeTotal(taskTypeName) {
-  const byTT = data.value.by_task_type || {}
-  return byTT[taskTypeName]?.co2_kg || 0
+  const byTT = data.value.by_task_type || {};
+  return byTT[taskTypeName]?.co2_kg || 0;
 }
 
 function getProductionTaskType(prodName, taskTypeName) {
-  const prod = productions.value.find(p => p.name === prodName)
-  return prod?.taskTypes[taskTypeName] || 0
+  const prod = productions.value.find((p) => p.name === prodName);
+  return prod?.taskTypes[taskTypeName] || 0;
+}
+
+function getTaskTypeColor(taskTypeName) {
+  const tt = store.taskTypes.find((t) => t.name === taskTypeName);
+  return tt?.color || null;
+}
+
+function taskTypeHeaderStyle(taskTypeName) {
+  const color = getTaskTypeColor(taskTypeName);
+  if (!color) return {};
+  return {
+    borderLeft: `2px solid ${color}30`,
+    background: `${color}10`,
+    textAlign: "center",
+  };
+}
+
+function taskTypeCellStyle(taskTypeName) {
+  const color = getTaskTypeColor(taskTypeName);
+  if (!color) return {};
+  return {
+    borderLeft: `2px solid ${color}30`,
+    borderRight: `1px solid ${color}30`,
+    background: `${color}08`,
+  };
 }
 
 function getBarWidth(kg) {
-  return (kg / maxEmission.value) * 100
+  return (kg / maxEmission.value) * 100;
 }
 
 function getPercent(kg) {
-  if (data.value.total_co2_kg === 0) return '0.0'
-  return ((kg / data.value.total_co2_kg) * 100).toFixed(1)
+  if (data.value.total_co2_kg === 0) return "0.0";
+  return ((kg / data.value.total_co2_kg) * 100).toFixed(1);
 }
 
 async function fetchData() {
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
-    const response = await fetch('/api/plugins/carbon/footprint')
+    const response = await fetch("/api/plugins/carbon/footprint");
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
+      throw new Error(`HTTP ${response.status}`);
     }
-    data.value = await response.json()
+    data.value = await response.json();
   } catch (err) {
-    error.value = `Failed to load data: ${err.message}`
+    error.value = `Failed to load data: ${err.message}`;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-onMounted(fetchData)
+function onKeydown(e) {
+  if (e.key === "Escape") showInfo.value = false;
+}
+
+onMounted(() => {
+  fetchData();
+  window.addEventListener("keydown", onKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", onKeydown);
+});
 </script>
 
 <style scoped>
 .carbon-tracking {
-  background: #1e1e2e;
+  background: #36393f;
   color: #e0e0e0;
   min-height: 100vh;
   padding: 1.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .header {
@@ -359,7 +483,8 @@ onMounted(fetchData)
 
 .unit-toggle {
   display: flex;
-  background: #2a2a3e;
+  background: #202225;
+  border: 3px solid #202225;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -371,16 +496,17 @@ onMounted(fetchData)
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   font-size: 0.75rem;
+  border-radius: 4px;
 }
 
 .unit-toggle button.active {
-  background: #3a3a4e;
+  background: #42464e;
   color: #fff;
 }
 
 .info-btn {
   background: transparent;
-  border: 1px solid #3a3a4e;
+  border: 1px solid #2f3136;
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -396,14 +522,15 @@ onMounted(fetchData)
   border-color: #4a4a5e;
 }
 
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   padding: 2rem;
   color: #888;
 }
 
 .error {
-  color: #f87171;
+  color: #ff5252;
 }
 
 .stats-row {
@@ -414,7 +541,7 @@ onMounted(fetchData)
 }
 
 .stat-card {
-  background: #2a2a3e;
+  background: #202225;
   border-radius: 8px;
   padding: 1rem 1.25rem;
 }
@@ -455,11 +582,37 @@ onMounted(fetchData)
   margin-top: 0.25rem;
 }
 
+.weekly-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.weekly-change.change-up {
+  background: rgba(255, 82, 82, 0.15);
+  color: #ff5252;
+}
+
+.weekly-change.change-down {
+  background: rgba(0, 170, 60, 0.15);
+  color: #00aa3c;
+}
+
+.weekly-change.change-neutral {
+  background: rgba(136, 136, 136, 0.15);
+  color: #888;
+}
+
 .tabs {
   display: flex;
   gap: 1.5rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid #202225;
 }
 
 .tabs button {
@@ -477,52 +630,82 @@ onMounted(fetchData)
 }
 
 .tabs button.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -1px;
   left: 0;
   right: 0;
   height: 2px;
-  background: #06b6d4;
+  background: #00aa3c;
+}
+
+.table-scroll {
+  overflow-x: auto;
 }
 
 .matrix-table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
   font-size: 0.875rem;
+  border: 1px solid #202225;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.matrix-table th,
+.matrix-table td {
+  min-width: 120px;
 }
 
 .matrix-table th {
   text-align: left;
   padding: 0.75rem;
-  color: #666;
+  color: #fff;
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid #202225;
+  background: #42464e;
 }
 
 .matrix-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid #202225;
+  text-align: center;
 }
 
 .matrix-table td:first-child {
   color: #e0e0e0;
+  text-align: left;
+}
+
+.matrix-table tbody tr:nth-child(odd) {
+  background: #46494f;
+}
+
+.matrix-table tbody tr:nth-child(even) {
+  background: #36393f;
 }
 
 .matrix-table .total-row {
-  background: #252535;
+  background: #4f525a !important;
 }
 
 .matrix-table .total-row td:first-child {
   font-weight: 600;
 }
 
-.matrix-table td.low { color: #22c55e; }
-.matrix-table td.medium { color: #f97316; }
-.matrix-table td.high { color: #f87171; }
+.matrix-table td.low {
+  color: #00aa3c;
+}
+.matrix-table td.medium {
+  color: #fb923c;
+}
+.matrix-table td.high {
+  color: #ff5252;
+}
 
 .legend {
   display: flex;
@@ -545,29 +728,47 @@ onMounted(fetchData)
   border-radius: 50%;
 }
 
-.dot.low { background: #22c55e; }
-.dot.medium { background: #f97316; }
-.dot.high { background: #f87171; }
+.dot.low {
+  background: #00aa3c;
+}
+.dot.medium {
+  background: #fb923c;
+}
+.dot.high {
+  background: #ff5252;
+}
 
 .breakdown-table {
   width: 100%;
   border-collapse: collapse;
+  border: 1px solid #202225;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .breakdown-table th {
   text-align: left;
   padding: 0.75rem;
-  color: #666;
+  color: #fff;
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid #202225;
+  background: #42464e;
 }
 
 .breakdown-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid #202225;
+}
+
+.breakdown-table tbody tr:nth-child(odd) {
+  background: #46494f;
+}
+
+.breakdown-table tbody tr:nth-child(even) {
+  background: #36393f;
 }
 
 .breakdown-table td:first-child {
@@ -580,7 +781,7 @@ onMounted(fetchData)
 }
 
 .bar-track {
-  background: #2a2a3e;
+  background: #202225;
   height: 24px;
   border-radius: 4px;
   overflow: hidden;
@@ -592,9 +793,15 @@ onMounted(fetchData)
   transition: width 0.3s ease;
 }
 
-.bar-fill.low { background: #22c55e; }
-.bar-fill.medium { background: #f97316; }
-.bar-fill.high { background: #f87171; }
+.bar-fill.low {
+  background: #00aa3c;
+}
+.bar-fill.medium {
+  background: #fb923c;
+}
+.bar-fill.high {
+  background: #ff5252;
+}
 
 .value-cell {
   text-align: right;
@@ -626,10 +833,10 @@ onMounted(fetchData)
 }
 
 .modal {
-  background: #2a2a3e;
+  background: #36393f;
   border-radius: 12px;
   padding: 1.5rem;
-  max-width: 480px;
+  max-width: 520px;
   width: 90%;
 }
 
@@ -637,13 +844,14 @@ onMounted(fetchData)
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   color: #fff;
+  font-weight: 600;
 }
 
 .close-btn {
@@ -660,9 +868,9 @@ onMounted(fetchData)
 }
 
 .modal-text {
-  color: #aaa;
+  color: #888;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: 1.25rem;
 }
 
@@ -670,42 +878,53 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #1e1e2e;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #202225;
   border-radius: 8px;
-  margin-bottom: 1.25rem;
-  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  font-family: monospace;
+  font-size: 1rem;
+  color: #e0e0e0;
 }
 
 .formula .operator {
   color: #666;
+  font-size: 0.875rem;
 }
 
 .formula .highlight {
-  color: #22c55e;
-  font-weight: 600;
+  color: #00aa3c;
 }
 
 .factors-section h3 {
   font-size: 0.7rem;
-  color: #666;
+  color: #888;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.75rem;
 }
 
-.factor-tags {
-  display: flex;
-  flex-wrap: wrap;
+.factor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
 }
 
-.factor-tag {
-  background: #3a3a4e;
-  padding: 0.5rem 0.75rem;
+.factor-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #42464e;
+  padding: 0.875rem 1rem;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

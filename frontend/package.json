@@ -8,15 +8,25 @@
     "build": "vite build",
     "build:project": "vite build --outDir project/dist",
     "build:studio": "vite build --outDir studio/dist",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --fix"
   },
   "dependencies": {
+    "lucide-vue-next": "^0.575.0",
     "pinia": "^2.1.0",
     "vue": "^3.4.0",
     "vue-router": "^4.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.3",
     "@vitejs/plugin-vue": "^5.0.0",
+    "eslint": "^9.39.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-vue": "^10.8.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
     "vite": "^5.0.0"
   }
 }
