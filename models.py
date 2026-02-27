@@ -46,21 +46,25 @@ class CarbonFactor(db.Model, BaseMixin, SerializerMixin):
     rendering_co2e = db.Column(db.Float, nullable=False)
     workbench_co2e = db.Column(db.Float, nullable=False)
 
+    def present(self):
+        return {
+            "country_code": self.country_code,
+            "country_name": self.country_name,
+            "rendering_co2e": self.rendering_co2e,
+            "workbench_co2e": self.workbench_co2e,
+        }
+
     @classmethod
     def seed_initial_data(cls):
         """
         Seed the database with initial carbon factor data for 23 countries.
         """
         for code, name, rendering, workbench in CARBON_FACTORS_DATA:
-            existing = (
-                db.session.query(cls).filter_by(country_code=code).first()
-            )
-            if not existing:
-                factor = cls(
+            if not cls.get_by(country_code=code):
+                cls.create_no_commit(
                     country_code=code,
                     country_name=name,
                     rendering_co2e=rendering,
                     workbench_co2e=workbench,
                 )
-                db.session.add(factor)
-        db.session.commit()
+        cls.commit()

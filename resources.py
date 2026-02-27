@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 
+from zou.app.mixin import ArgsMixin
 from zou.app.services import projects_service, user_service
 from zou.app.utils import permissions
 
@@ -10,9 +11,6 @@ from . import services
 
 
 class CarbonFactorsResource(Resource):
-    """
-    List all carbon factors or create/update a factor.
-    """
 
     @jwt_required()
     def get(self):
@@ -50,15 +48,7 @@ class CarbonFactorsResource(Resource):
                         example: 10.0
         """
         factors = CarbonFactor.query.all()
-        return [
-            {
-                "country_code": f.country_code,
-                "country_name": f.country_name,
-                "rendering_co2e": f.rendering_co2e,
-                "workbench_co2e": f.workbench_co2e,
-            }
-            for f in factors
-        ]
+        return [f.present() for f in factors]
 
     @jwt_required()
     def post(self):
@@ -120,52 +110,32 @@ class CarbonFactorsResource(Resource):
         if not data:
             return {"error": "Request body is required"}, 400
 
-        raw_country_code = data.get("country_code", "")
-        country_code = raw_country_code.upper().strip()
+        error = self._validate(data)
+        if error:
+            return {"error": error}, 400
+
+        factor = services.create_or_update_factor(data)
+        return factor.present(), 201
+
+    def _validate(self, data):
+        country_code = data.get("country_code", "").upper().strip()
         country_name = data.get("country_name", "")
 
-        try:
-            rendering_co2e = float(data.get("rendering_co2e", 0))
-            workbench_co2e = float(data.get("workbench_co2e", 0))
-        except (ValueError, TypeError):
-            return {
-                "error": "rendering_co2e and workbench_co2e " "must be numeric"
-            }, 400
-
         if not country_code or len(country_code) != 2:
-            return {"error": "Invalid country_code"}, 400
+            return "Invalid country_code"
         if not country_name:
-            return {"error": "country_name is required"}, 400
+            return "country_name is required"
 
-        factor = CarbonFactor.query.filter_by(country_code=country_code).first()
-        if factor:
-            factor.country_name = country_name
-            factor.rendering_co2e = rendering_co2e
-            factor.workbench_co2e = workbench_co2e
-        else:
-            factor = CarbonFactor(
-                country_code=country_code,
-                country_name=country_name,
-                rendering_co2e=rendering_co2e,
-                workbench_co2e=workbench_co2e,
-            )
-            from zou.app import db
+        try:
+            float(data.get("rendering_co2e", 0))
+            float(data.get("workbench_co2e", 0))
+        except (ValueError, TypeError):
+            return "rendering_co2e and workbench_co2e must be numeric"
 
-            db.session.add(factor)
-
-        CarbonFactor.commit()
-        return {
-            "country_code": factor.country_code,
-            "country_name": factor.country_name,
-            "rendering_co2e": factor.rendering_co2e,
-            "workbench_co2e": factor.workbench_co2e,
-        }, 201
+        return None
 
 
 class CarbonFactorResource(Resource):
-    """
-    Get a specific carbon factor by country code.
-    """
 
     @jwt_required()
     def get(self, country_code):
@@ -206,23 +176,13 @@ class CarbonFactorResource(Resource):
           404:
             description: Country not found
         """
-        factor = CarbonFactor.query.filter_by(
-            country_code=country_code.upper()
-        ).first()
+        factor = CarbonFactor.get_by(country_code=country_code.upper())
         if not factor:
             return {"error": "Country not found"}, 404
-        return {
-            "country_code": factor.country_code,
-            "country_name": factor.country_name,
-            "rendering_co2e": factor.rendering_co2e,
-            "workbench_co2e": factor.workbench_co2e,
-        }
+        return factor.present()
 
 
 class StudioFootprintResource(Resource):
-    """
-    Get CO2 footprint per production per task type for the whole studio.
-    """
 
     @jwt_required()
     def get(self):
@@ -298,10 +258,7 @@ class StudioFootprintResource(Resource):
         }
 
 
-class ProductionSequenceFootprintResource(Resource):
-    """
-    Get CO2 footprint per sequence per task type for non-TV productions.
-    """
+class ProductionSequenceFootprintResource(Resource, ArgsMixin):
 
     @jwt_required()
     def get(self, project_id):
@@ -379,6 +336,7 @@ class ProductionSequenceFootprintResource(Resource):
           404:
             description: Project not found
         """
+        self.check_id_parameter(project_id)
         user_service.check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
@@ -396,10 +354,7 @@ class ProductionSequenceFootprintResource(Resource):
         }
 
 
-class ProductionEpisodeFootprintResource(Resource):
-    """
-    Get CO2 footprint per episode per task type for TV series.
-    """
+class ProductionEpisodeFootprintResource(Resource, ArgsMixin):
 
     @jwt_required()
     def get(self, project_id):
@@ -477,6 +432,7 @@ class ProductionEpisodeFootprintResource(Resource):
           404:
             description: Project not found
         """
+        self.check_id_parameter(project_id)
         user_service.check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
@@ -494,10 +450,7 @@ class ProductionEpisodeFootprintResource(Resource):
         }
 
 
-class ProductionAssetFootprintResource(Resource):
-    """
-    Get CO2 footprint per asset type per task type.
-    """
+class ProductionAssetFootprintResource(Resource, ArgsMixin):
 
     @jwt_required()
     def get(self, project_id):
@@ -575,6 +528,7 @@ class ProductionAssetFootprintResource(Resource):
           404:
             description: Project not found
         """
+        self.check_id_parameter(project_id)
         user_service.check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
@@ -592,7 +546,7 @@ class ProductionAssetFootprintResource(Resource):
         }
 
 
-class ProductionTaskTypeFootprintResource(Resource):
+class ProductionTaskTypeFootprintResource(Resource, ArgsMixin):
 
     @jwt_required()
     def get(self, project_id):
@@ -650,6 +604,7 @@ class ProductionTaskTypeFootprintResource(Resource):
           404:
             description: Project not found
         """
+        self.check_id_parameter(project_id)
         user_service.check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
@@ -667,10 +622,7 @@ class ProductionTaskTypeFootprintResource(Resource):
         }
 
 
-class ProductionFootprintSummaryResource(Resource):
-    """
-    Get overall CO2 footprint summary for a production.
-    """
+class ProductionFootprintSummaryResource(Resource, ArgsMixin):
 
     @jwt_required()
     def get(self, project_id):
@@ -722,6 +674,7 @@ class ProductionFootprintSummaryResource(Resource):
           404:
             description: Project not found
         """
+        self.check_id_parameter(project_id)
         user_service.check_project_access(project_id)
         project = projects_service.get_project(project_id)
 

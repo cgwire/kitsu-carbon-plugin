@@ -18,6 +18,33 @@ from zou.app.models.person import Person
 from .models import CarbonFactor
 
 
+def create_or_update_factor(data):
+    """
+    Create or update a carbon emission factor for a country.
+    Returns the factor instance.
+    """
+    country_code = data.get("country_code", "").upper().strip()
+    country_name = data.get("country_name", "")
+    rendering_co2e = float(data.get("rendering_co2e", 0))
+    workbench_co2e = float(data.get("workbench_co2e", 0))
+
+    factor = CarbonFactor.get_by(country_code=country_code)
+    if factor:
+        factor.update({
+            "country_name": country_name,
+            "rendering_co2e": rendering_co2e,
+            "workbench_co2e": workbench_co2e,
+        })
+    else:
+        factor = CarbonFactor.create(
+            country_code=country_code,
+            country_name=country_name,
+            rendering_co2e=rendering_co2e,
+            workbench_co2e=workbench_co2e,
+        )
+    return factor
+
+
 DEFAULT_COUNTRY = "FR"
 
 
