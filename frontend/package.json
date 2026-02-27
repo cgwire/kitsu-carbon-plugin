@@ -6,8 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:project": "vite build --outDir project/dist",
-    "build:studio": "vite build --outDir studio/dist",
     "preview": "vite preview",
     "lint": "eslint src --fix"
   },

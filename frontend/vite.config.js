@@ -7,20 +7,20 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
-    emptyOutDir: true,
+    emptyOutDir: true
   },
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
-    },
-  },
+      '@': resolve(__dirname, 'src')
+    }
+  }
 })
