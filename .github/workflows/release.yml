@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create release zip
+        run: |
+          zip -r kitsu-carbon-plugin.zip \
+            manifest.toml \
+            __init__.py \
+            resources.py \
+            models.py \
+            migrations/ \
+            frontend/dist/ \
+            logo.png
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kitsu-carbon-plugin.zip
+          generate_release_notes: true
