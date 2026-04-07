@@ -29,12 +29,11 @@ jobs:
         run: |
           zip -r kitsu-carbon-plugin.zip \
             manifest.toml \
-            __init__.py \
-            resources.py \
-            models.py \
+            *.py \
             migrations/ \
             frontend/dist/ \
-            logo.png
+            logo.png \
+            README.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
