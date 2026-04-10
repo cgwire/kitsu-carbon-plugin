@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <h1>Carbon Tracking</h1>
+      <h1>{{ $t('carbon.title') }}</h1>
       <span class="subtitle">{{ subtitle }}</span>
     </div>
     <div class="header-right">

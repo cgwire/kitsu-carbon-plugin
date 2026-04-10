@@ -17,30 +17,34 @@
         <trending-up v-if="weeklyChangePercent > 0" :size="14" />
         <trending-down v-else-if="weeklyChangePercent < 0" :size="14" />
         <minus v-else :size="14" />
-        <span>{{ changeLabel }} vs last week</span>
+        <span>{{ changeLabel }} {{ $t('carbon.stats.vs_last_week') }}</span>
       </div>
     </div>
 
     <div class="stat-card">
       <div class="stat-header">
-        <span>Weekly Average Emissions</span>
+        <span>{{ $t('carbon.stats.weekly_average') }}</span>
         <calendar :size="20" />
       </div>
       <div class="stat-value">
         <span class="value">{{ formatValue(weeklyAverage) }}</span>
-        <span class="unit">{{ unitLabel }} / week</span>
+        <span class="unit">{{
+          $t('carbon.units.per_week', { unit: unitLabel })
+        }}</span>
       </div>
-      <div class="stat-subtitle">Based on logged time</div>
+      <div class="stat-subtitle">
+        {{ $t('carbon.stats.based_on_logged_time') }}
+      </div>
     </div>
 
     <div class="stat-card">
       <div class="stat-header">
-        <span>Total Man-Days</span>
+        <span>{{ $t('carbon.stats.total_man_days') }}</span>
         <users :size="20" />
       </div>
       <div class="stat-value">
         <span class="value">{{ formatNumber(totalManDays) }}</span>
-        <span class="unit">logged</span>
+        <span class="unit">{{ $t('carbon.units.logged') }}</span>
       </div>
       <div class="stat-subtitle">{{ manDaysSubtitle }}</div>
     </div>

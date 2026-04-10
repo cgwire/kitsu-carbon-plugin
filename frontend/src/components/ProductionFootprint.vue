@@ -7,13 +7,13 @@
       @show-info="showInfo = true"
     />
 
-    <div v-if="initialLoading" class="loading">Loading...</div>
+    <div v-if="initialLoading" class="loading">{{ $t('carbon.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
 
     <template v-else>
       <stat-cards
-        emissions-label="Total Project Emissions"
-        man-days-subtitle="Cumulative across all steps"
+        :emissions-label="$t('carbon.stats.total_project_emissions')"
+        :man-days-subtitle="$t('carbon.stats.cumulative_all_steps')"
         :total-co2-kg="summary.total_co2_kg"
         :total-man-days="summary.total_man_days"
         :weekly-average="summary.weekly_average_co2_kg"
@@ -23,30 +23,39 @@
         :format-number="formatNumber"
       />
 
-      <view-tabs v-model="activeTab" breakdown-label="Step breakdown" />
+      <view-tabs
+        v-model="activeTab"
+        :breakdown-label="$t('carbon.tabs.step_breakdown')"
+      />
 
       <div class="entity-filters">
         <button
           :class="{ active: entityFilter === 'Shot' }"
           @click="entityFilter = 'Shot'"
         >
-          Shots
+          {{ $t('carbon.filters.shots') }}
         </button>
         <button
           :class="{ active: entityFilter === 'Asset' }"
           @click="entityFilter = 'Asset'"
         >
-          Assets
+          {{ $t('carbon.filters.assets') }}
         </button>
       </div>
 
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="activeTab === 'matrix'" ref="tableScrollRef" class="matrix-view table-scroll">
+      <div v-if="loading" class="loading">{{ $t('carbon.loading') }}</div>
+      <div
+        v-else-if="activeTab === 'matrix'"
+        ref="tableScrollRef"
+        class="matrix-view table-scroll"
+      >
         <table class="matrix-table">
           <thead>
             <tr>
               <th class="col-name">{{ rowLabel }}</th>
-              <th class="col-total" style="text-align: center">ALL</th>
+              <th class="col-total" style="text-align: center">
+                {{ $t('carbon.matrix.all') }}
+              </th>
               <th
                 v-for="tt in taskTypes"
                 :key="tt"
@@ -58,7 +67,9 @@
           </thead>
           <tbody>
             <tr class="total-row">
-              <td class="col-name">All {{ rowLabel }}</td>
+              <td class="col-name">
+                {{ $t('carbon.matrix.all_row', { label: rowLabel }) }}
+              </td>
               <td class="col-total">
                 {{ formatValue(data.total_co2_kg) }}
               </td>
@@ -86,16 +97,19 @@
             </tr>
           </tbody>
         </table>
-        <impact-legend />
       </div>
+
+      <impact-legend v-if="activeTab === 'matrix'" />
 
       <div v-else class="breakdown-view">
         <table class="breakdown-table">
           <thead>
             <tr>
-              <th class="col-name">PRODUCTION STEP</th>
-              <th>EMISSION IMPACT</th>
-              <th>VALUE</th>
+              <th class="col-name">
+                {{ $t('carbon.matrix.production_step') }}
+              </th>
+              <th>{{ $t('carbon.matrix.emission_impact') }}</th>
+              <th>{{ $t('carbon.matrix.value') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -111,13 +125,16 @@
                     class="bar-fill"
                     :class="getImpactClass(item.co2_kg, maxBreakdownEmission)"
                     :style="{
-                      width: getBarWidth(item.co2_kg, maxBreakdownEmission) + '%'
+                      width:
+                        getBarWidth(item.co2_kg, maxBreakdownEmission) + '%'
                     }"
                   ></div>
                 </div>
               </td>
               <td class="value-cell">
-                <span class="kg">{{ formatValue(item.co2_kg) }} {{ unitLabel }}</span>
+                <span class="kg"
+                  >{{ formatValue(item.co2_kg) }} {{ unitLabel }}</span
+                >
                 <span class="percent"
                   >{{ getPercent(item.co2_kg, data.total_co2_kg) }}%</span
                 >
@@ -128,12 +145,15 @@
       </div>
     </template>
 
+    <disclaimer-notice />
+
     <info-modal :visible="showInfo" @close="showInfo = false" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMainStore } from '../stores/main'
 import { useCarbon } from '../composables/useCarbon'
 import { useDragScroll } from '../composables/useDragScroll'
@@ -142,7 +162,9 @@ import ViewTabs from './ViewTabs.vue'
 import StatCards from './StatCards.vue'
 import ImpactLegend from './ImpactLegend.vue'
 import InfoModal from './InfoModal.vue'
+import DisclaimerNotice from './DisclaimerNotice.vue'
 
+const { t } = useI18n()
 const store = useMainStore()
 
 const {
@@ -196,8 +218,10 @@ const isTVShow = computed(() => {
 })
 
 const rowLabel = computed(() => {
-  if (entityFilter.value === 'Asset') return 'ASSET TYPES'
-  return isTVShow.value ? 'EPISODES' : 'SEQUENCES'
+  if (entityFilter.value === 'Asset') return t('carbon.matrix.asset_types')
+  return isTVShow.value
+    ? t('carbon.matrix.episodes')
+    : t('carbon.matrix.sequences')
 })
 
 const groupNameField = computed(() => {
@@ -218,9 +242,7 @@ const allTaskTypes = computed(() => {
     store.taskTypes.forEach((tt) => {
       taskTypeMap[tt.id] = tt.name
     })
-    return prod.task_types
-      .map((id) => taskTypeMap[id])
-      .filter(Boolean)
+    return prod.task_types.map((id) => taskTypeMap[id]).filter(Boolean)
   }
   if (store.taskTypes.length > 0) {
     return store.taskTypes.map((tt) => tt.name)
@@ -320,7 +342,7 @@ const fetchData = async () => {
     const result = await response.json()
     data.value = result
   } catch (err) {
-    error.value = `Failed to load data: ${err.message}`
+    error.value = t('carbon.error_loading', { error: err.message })
   } finally {
     loading.value = false
     initialLoading.value = false

@@ -1,19 +1,19 @@
 <template>
   <div class="carbon-tracking">
     <footprint-header
-      subtitle="All Productions"
+      :subtitle="$t('carbon.all_productions')"
       :unit="unit"
       @update:unit="unit = $event"
       @show-info="showInfo = true"
     />
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <div v-if="loading" class="loading">{{ $t('carbon.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
 
     <template v-else>
       <stat-cards
-        emissions-label="Total Studio Emissions"
-        man-days-subtitle="Cumulative across all productions"
+        :emissions-label="$t('carbon.stats.total_studio_emissions')"
+        :man-days-subtitle="$t('carbon.stats.cumulative_all_productions')"
         :total-co2-kg="data.total_co2_kg"
         :total-man-days="data.total_man_days"
         :weekly-average="weeklyAverage"
@@ -23,29 +23,38 @@
         :format-number="formatNumber"
       />
 
-      <view-tabs v-model="activeTab" breakdown-label="Production breakdown" />
+      <view-tabs
+        v-model="activeTab"
+        :breakdown-label="$t('carbon.tabs.production_breakdown')"
+      />
 
       <div class="entity-filters">
         <button
           :class="{ active: entityFilter === 'Shot' }"
           @click="entityFilter = 'Shot'"
         >
-          Shots
+          {{ $t('carbon.filters.shots') }}
         </button>
         <button
           :class="{ active: entityFilter === 'Asset' }"
           @click="entityFilter = 'Asset'"
         >
-          Assets
+          {{ $t('carbon.filters.assets') }}
         </button>
       </div>
 
-      <div v-if="activeTab === 'matrix'" ref="tableScrollRef" class="matrix-view table-scroll">
+      <div
+        v-if="activeTab === 'matrix'"
+        ref="tableScrollRef"
+        class="matrix-view table-scroll"
+      >
         <table class="matrix-table">
           <thead>
             <tr>
-              <th class="col-name">PRODUCTIONS</th>
-              <th class="col-total" style="text-align: center">ALL STEPS</th>
+              <th class="col-name">{{ $t('carbon.matrix.productions') }}</th>
+              <th class="col-total" style="text-align: center">
+                {{ $t('carbon.matrix.all_steps') }}
+              </th>
               <th
                 v-for="tt in taskTypes"
                 :key="tt"
@@ -57,7 +66,7 @@
           </thead>
           <tbody>
             <tr class="total-row">
-              <td class="col-name">All Productions</td>
+              <td class="col-name">{{ $t('carbon.all_productions') }}</td>
               <td class="col-total">
                 {{ formatValue(data.total_co2_kg) }}
               </td>
@@ -90,16 +99,17 @@
             </tr>
           </tbody>
         </table>
-        <impact-legend />
       </div>
+
+      <impact-legend v-if="activeTab === 'matrix'" />
 
       <div v-else class="breakdown-view">
         <table class="breakdown-table">
           <thead>
             <tr>
-              <th class="col-name">PRODUCTION</th>
-              <th>EMISSION IMPACT</th>
-              <th>VALUE</th>
+              <th class="col-name">{{ $t('carbon.matrix.production') }}</th>
+              <th>{{ $t('carbon.matrix.emission_impact') }}</th>
+              <th>{{ $t('carbon.matrix.value') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -117,7 +127,9 @@
                 </div>
               </td>
               <td class="value-cell">
-                <span class="kg">{{ formatValue(prod.total) }} {{ unitLabel }}</span>
+                <span class="kg"
+                  >{{ formatValue(prod.total) }} {{ unitLabel }}</span
+                >
                 <span class="percent"
                   >{{ getPercent(prod.total, data.total_co2_kg) }}%</span
                 >
@@ -128,12 +140,15 @@
       </div>
     </template>
 
+    <disclaimer-notice />
+
     <info-modal :visible="showInfo" @close="showInfo = false" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMainStore } from '../stores/main'
 import { useCarbon } from '../composables/useCarbon'
 import { useDragScroll } from '../composables/useDragScroll'
@@ -142,7 +157,9 @@ import ViewTabs from './ViewTabs.vue'
 import StatCards from './StatCards.vue'
 import ImpactLegend from './ImpactLegend.vue'
 import InfoModal from './InfoModal.vue'
+import DisclaimerNotice from './DisclaimerNotice.vue'
 
+const { t } = useI18n()
 const store = useMainStore()
 
 const {
@@ -245,9 +262,7 @@ const weeklyAverage = computed(() => {
 
 const maxEmission = computed(() => {
   if (productions.value.length === 0) return 1
-  const allValues = productions.value.flatMap((p) =>
-    Object.values(p.taskTypes)
-  )
+  const allValues = productions.value.flatMap((p) => Object.values(p.taskTypes))
   return Math.max(...allValues, 1)
 })
 
@@ -272,7 +287,7 @@ const fetchData = async () => {
     }
     data.value = await response.json()
   } catch (err) {
-    error.value = `Failed to load data: ${err.message}`
+    error.value = t('carbon.error_loading', { error: err.message })
   } finally {
     loading.value = false
   }

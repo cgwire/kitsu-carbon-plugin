@@ -4,7 +4,7 @@
       :class="{ active: modelValue === 'matrix' }"
       @click="$emit('update:modelValue', 'matrix')"
     >
-      Matrix view
+      {{ $t('carbon.tabs.matrix_view') }}
     </button>
     <button
       :class="{ active: modelValue === 'breakdown' }"

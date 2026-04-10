@@ -1,13 +1,13 @@
 <template>
   <div class="legend">
     <span class="legend-item">
-      <span class="dot low"></span> Lowest Impact
+      <span class="dot low"></span> {{ $t('carbon.legend.lowest') }}
     </span>
     <span class="legend-item">
-      <span class="dot medium"></span> Medium Impact
+      <span class="dot medium"></span> {{ $t('carbon.legend.medium') }}
     </span>
     <span class="legend-item">
-      <span class="dot high"></span> Highest Impact
+      <span class="dot high"></span> {{ $t('carbon.legend.highest') }}
     </span>
   </div>
 </template>

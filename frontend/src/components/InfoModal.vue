@@ -7,46 +7,43 @@
       aria-labelledby="info-modal-title"
     >
       <div class="modal-header">
-        <h2 id="info-modal-title">How is carbon calculated?</h2>
+        <h2 id="info-modal-title">{{ $t('carbon.info.title') }}</h2>
         <button class="close-btn" @click="$emit('close')">&times;</button>
       </div>
-      <p class="modal-text">
-        Emissions are estimated based on logged working time per task and
-        geographic carbon factors specific to each production facility.
-      </p>
+      <p class="modal-text">{{ $t('carbon.info.description') }}</p>
       <div class="formula">
-        <span>Work Time</span>
+        <span>{{ $t('carbon.info.work_time') }}</span>
         <span class="operator">x</span>
-        <span>People</span>
+        <span>{{ $t('carbon.info.people') }}</span>
         <span class="operator">x</span>
-        <span class="highlight">Carbon Factor</span>
+        <span class="highlight">{{ $t('carbon.info.carbon_factor') }}</span>
       </div>
       <div class="factors-section">
-        <h3>WHAT'S INCLUDED IN THE CARBON FACTOR:</h3>
+        <h3>{{ $t('carbon.info.factors_title') }}</h3>
         <div class="factor-grid">
           <div class="factor-item">
             <monitor :size="18" />
-            <span>Workstation</span>
+            <span>{{ $t('carbon.info.workstation') }}</span>
           </div>
           <div class="factor-item">
             <building2 :size="18" />
-            <span>Building Energy</span>
+            <span>{{ $t('carbon.info.building_energy') }}</span>
           </div>
           <div class="factor-item">
             <zap :size="18" />
-            <span>Electricity Mix</span>
+            <span>{{ $t('carbon.info.electricity_mix') }}</span>
           </div>
           <div class="factor-item">
             <utensils-crossed :size="18" />
-            <span>Meals</span>
+            <span>{{ $t('carbon.info.meals') }}</span>
           </div>
           <div class="factor-item">
             <cloud :size="18" />
-            <span>Cloud & Infra</span>
+            <span>{{ $t('carbon.info.cloud_infra') }}</span>
           </div>
           <div class="factor-item">
             <train-front :size="18" />
-            <span>Commute</span>
+            <span>{{ $t('carbon.info.commute') }}</span>
           </div>
         </div>
       </div>
