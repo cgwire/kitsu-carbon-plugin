@@ -125,14 +125,14 @@ const changeLabel = computed(() => {
 }
 
 .stat-card {
-  background: #202225;
+  background: var(--bg-card);
   border-radius: 8px;
   padding: 1rem 1.25rem;
 }
 
 .stat-header {
   align-items: center;
-  color: #888;
+  color: var(--text-secondary);
   display: flex;
   font-size: 0.875rem;
   justify-content: space-between;
@@ -150,18 +150,18 @@ const changeLabel = computed(() => {
 }
 
 .stat-value .value {
-  color: #fff;
+  color: var(--text-heading);
   font-size: 2rem;
   font-weight: 600;
 }
 
 .stat-value .unit {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
 .stat-subtitle {
-  color: #666;
+  color: var(--text-tertiary);
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -178,18 +178,18 @@ const changeLabel = computed(() => {
 }
 
 .weekly-change.change-up {
-  background: rgba(255, 82, 82, 0.15);
-  color: #ff5252;
+  background: var(--change-up-bg);
+  color: var(--accent-red);
 }
 
 .weekly-change.change-down {
-  background: rgba(0, 170, 60, 0.15);
-  color: #00aa3c;
+  background: var(--change-down-bg);
+  color: var(--accent-green);
 }
 
 .weekly-change.change-neutral {
-  background: rgba(136, 136, 136, 0.15);
-  color: #888;
+  background: var(--change-neutral-bg);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

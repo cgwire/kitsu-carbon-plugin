@@ -1,5 +1,5 @@
 <template>
-  <div class="carbon-tracking">
+  <div class="carbon-tracking" :class="themeClass">
     <footprint-header
       :subtitle="$t('carbon.all_productions')"
       :unit="unit"
@@ -152,6 +152,7 @@ import { useI18n } from 'vue-i18n'
 import { useMainStore } from '../stores/main'
 import { useCarbon } from '../composables/useCarbon'
 import { useDragScroll } from '../composables/useDragScroll'
+import { useTheme } from '../composables/useTheme'
 import FootprintHeader from './FootprintHeader.vue'
 import ViewTabs from './ViewTabs.vue'
 import StatCards from './StatCards.vue'
@@ -161,6 +162,7 @@ import DisclaimerNotice from './DisclaimerNotice.vue'
 
 const { t } = useI18n()
 const store = useMainStore()
+const { themeClass } = useTheme()
 
 const {
   unit,
@@ -300,8 +302,8 @@ onMounted(() => {
 
 <style scoped>
 .carbon-tracking {
-  background: #36393f;
-  color: #e0e0e0;
+  background: var(--bg-page);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   font-family:
@@ -319,29 +321,29 @@ onMounted(() => {
 
 .entity-filters button {
   background: transparent;
-  border: 1px solid #555;
+  border: 1px solid var(--border-filter);
   border-radius: 4px;
-  color: #888;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.8rem;
   padding: 0.35rem 0.75rem;
 }
 
 .entity-filters button.active {
-  background: #00aa3c;
-  border-color: #00aa3c;
+  background: var(--accent-green);
+  border-color: var(--accent-green);
   color: #fff;
 }
 
 .loading,
 .error {
-  color: #888;
+  color: var(--text-secondary);
   padding: 2rem;
   text-align: center;
 }
 
 .error {
-  color: #ff5252;
+  color: var(--accent-red);
 }
 
 .table-scroll {
@@ -370,9 +372,9 @@ onMounted(() => {
 }
 
 .matrix-table th {
-  background: #42464e;
-  border-bottom: 1px solid #202225;
-  color: #fff;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-heading);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -385,13 +387,13 @@ onMounted(() => {
 }
 
 .matrix-table td {
-  border-bottom: 1px solid #202225;
+  border-bottom: 1px solid var(--border-primary);
   padding: 0.75rem;
   text-align: center;
 }
 
 .matrix-table .col-name {
-  color: #e0e0e0;
+  color: var(--text-primary);
   left: 0;
   position: sticky;
   text-align: left;
@@ -404,15 +406,15 @@ onMounted(() => {
 }
 
 .matrix-table tbody tr:nth-child(odd) .col-name {
-  background: #46494f;
+  background: var(--bg-row-odd);
 }
 
 .matrix-table tbody tr:nth-child(even) .col-name {
-  background: #36393f;
+  background: var(--bg-row-even);
 }
 
 .matrix-table .total-row .col-name {
-  background: #4f525a;
+  background: var(--bg-total-row);
 }
 
 .matrix-table .col-total {
@@ -420,15 +422,15 @@ onMounted(() => {
 }
 
 .matrix-table tbody tr:nth-child(odd) {
-  background: #46494f;
+  background: var(--bg-row-odd);
 }
 
 .matrix-table tbody tr:nth-child(even) {
-  background: #36393f;
+  background: var(--bg-row-even);
 }
 
 .matrix-table .total-row {
-  background: #4f525a !important;
+  background: var(--bg-total-row) !important;
 }
 
 .matrix-table .total-row .col-name {
@@ -436,17 +438,17 @@ onMounted(() => {
 }
 
 .matrix-table td.low {
-  color: #00aa3c;
+  color: var(--accent-green);
 }
 .matrix-table td.medium {
-  color: #fb923c;
+  color: var(--accent-orange);
 }
 .matrix-table td.high {
-  color: #ff5252;
+  color: var(--accent-red);
 }
 
 .breakdown-table {
-  border: 1px solid #202225;
+  border: 1px solid var(--border-primary);
   border-collapse: collapse;
   border-radius: 6px;
   overflow: hidden;
@@ -454,9 +456,9 @@ onMounted(() => {
 }
 
 .breakdown-table th {
-  background: #42464e;
-  border-bottom: 1px solid #202225;
-  color: #fff;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-heading);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -466,16 +468,16 @@ onMounted(() => {
 }
 
 .breakdown-table td {
-  border-bottom: 1px solid #202225;
+  border-bottom: 1px solid var(--border-primary);
   padding: 0.75rem;
 }
 
 .breakdown-table tbody tr:nth-child(odd) {
-  background: #46494f;
+  background: var(--bg-row-odd);
 }
 
 .breakdown-table tbody tr:nth-child(even) {
-  background: #36393f;
+  background: var(--bg-row-even);
 }
 
 .breakdown-table .col-name {
@@ -488,7 +490,7 @@ onMounted(() => {
 }
 
 .bar-track {
-  background: #202225;
+  background: var(--bg-card);
   border-radius: 4px;
   height: 24px;
   overflow: hidden;
@@ -501,13 +503,13 @@ onMounted(() => {
 }
 
 .bar-fill.low {
-  background: #00aa3c;
+  background: var(--accent-green);
 }
 .bar-fill.medium {
-  background: #fb923c;
+  background: var(--accent-orange);
 }
 .bar-fill.high {
-  background: #ff5252;
+  background: var(--accent-red);
 }
 
 .value-cell {
@@ -521,8 +523,86 @@ onMounted(() => {
 }
 
 .value-cell .percent {
-  color: #666;
+  color: var(--text-tertiary);
   display: block;
   font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .carbon-tracking {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .entity-filters {
+    display: none;
+  }
+
+  .table-scroll {
+    flex: none;
+    overflow-x: auto;
+  }
+
+  .breakdown-view {
+    flex: none;
+  }
+
+  .matrix-table .col-name {
+    min-width: 100px;
+    width: 100px;
+  }
+
+  .matrix-table th,
+  .matrix-table td {
+    min-width: 80px;
+    padding: 0.5rem;
+  }
+
+  .breakdown-table thead {
+    display: none;
+  }
+
+  .breakdown-table tbody tr {
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+  }
+
+  .breakdown-table td {
+    border-bottom: none;
+    padding: 0;
+  }
+
+  .breakdown-table td.col-name {
+    flex: 1;
+    font-weight: 600;
+    order: 1;
+    width: auto;
+  }
+
+  .breakdown-table td.value-cell {
+    flex: 0 0 auto;
+    order: 2;
+    text-align: right;
+  }
+
+  .breakdown-table td.bar-cell {
+    flex: 0 0 100%;
+    margin-top: 0.5rem;
+    order: 3;
+    width: 100%;
+  }
+
+  .value-cell .kg,
+  .value-cell .percent {
+    display: inline;
+  }
+
+  .value-cell .percent {
+    margin-left: 0.5rem;
+  }
 }
 </style>

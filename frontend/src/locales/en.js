@@ -65,7 +65,8 @@ export default {
       electricity_mix: 'Electricity Mix',
       meals: 'Meals',
       cloud_infra: 'Cloud & Infra',
-      commute: 'Commute'
+      commute: 'Commute',
+      read_doc: 'Read full documentation'
     },
 
     disclaimer:

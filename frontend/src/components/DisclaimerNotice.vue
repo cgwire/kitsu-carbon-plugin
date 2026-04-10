@@ -12,11 +12,11 @@ import { TriangleAlert } from 'lucide-vue-next'
 <style scoped>
 .disclaimer {
   align-items: flex-start;
-  background: #2f3136;
-  border: 1px solid #42464e;
-  border-left: 3px solid #fb923c;
+  background: var(--bg-disclaimer);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--accent-orange);
   border-radius: 6px;
-  color: #aaa;
+  color: var(--text-secondary);
   display: flex;
   font-size: 0.75rem;
   gap: 0.625rem;
@@ -26,7 +26,7 @@ import { TriangleAlert } from 'lucide-vue-next'
 }
 
 .disclaimer-icon {
-  color: #fb923c;
+  color: var(--accent-orange);
   flex-shrink: 0;
   margin-top: 1px;
 }

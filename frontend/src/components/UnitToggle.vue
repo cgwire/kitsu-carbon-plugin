@@ -27,8 +27,8 @@ defineEmits(['update:modelValue'])
 
 <style scoped>
 .unit-toggle {
-  background: #202225;
-  border: 3px solid #202225;
+  background: var(--bg-card);
+  border: 3px solid var(--bg-card);
   border-radius: 6px;
   display: flex;
   overflow: hidden;
@@ -38,14 +38,14 @@ defineEmits(['update:modelValue'])
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #888;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.75rem;
   padding: 0.5rem 0.75rem;
 }
 
 .unit-toggle button.active {
-  background: #42464e;
-  color: #fff;
+  background: var(--bg-surface);
+  color: var(--text-heading);
 }
 </style>

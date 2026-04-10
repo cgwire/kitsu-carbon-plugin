@@ -65,7 +65,8 @@ export default {
       electricity_mix: 'Mix électrique',
       meals: 'Repas',
       cloud_infra: 'Cloud & Infra',
-      commute: 'Trajets domicile-travail'
+      commute: 'Trajets domicile-travail',
+      read_doc: 'Lire la documentation complète'
     },
 
     disclaimer:

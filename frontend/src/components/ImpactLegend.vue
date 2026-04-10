@@ -14,7 +14,7 @@
 
 <style scoped>
 .legend {
-  color: #888;
+  color: var(--text-secondary);
   display: flex;
   font-size: 0.75rem;
   gap: 1.5rem;
@@ -35,12 +35,12 @@
 }
 
 .dot.low {
-  background: #00aa3c;
+  background: var(--accent-green);
 }
 .dot.medium {
-  background: #fb923c;
+  background: var(--accent-orange);
 }
 .dot.high {
-  background: #ff5252;
+  background: var(--accent-red);
 }
 </style>

@@ -1,0 +1,63 @@
+/* ── Light theme (default) ── */
+.carbon-tracking {
+  --bg-page: #f9f9f9;
+  --bg-card: #ffffff;
+  --bg-surface: #f5f5f5;
+  --bg-row-odd: #fafafa;
+  --bg-row-even: #ffffff;
+  --bg-total-row: #f0f0f0;
+  --bg-modal: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+  --bg-disclaimer: #fffbf5;
+
+  --text-primary: #333;
+  --text-heading: #222;
+  --text-secondary: #888;
+  --text-tertiary: #aaa;
+  --text-muted: #555;
+
+  --border-primary: #e5e5e5;
+  --border-secondary: #ddd;
+  --border-light: #eee;
+  --border-filter: #ccc;
+
+  --accent-green: #00aa3c;
+  --accent-orange: #fb923c;
+  --accent-red: #ff5252;
+
+  --change-up-bg: rgba(255, 82, 82, 0.1);
+  --change-down-bg: rgba(0, 170, 60, 0.1);
+  --change-neutral-bg: rgba(136, 136, 136, 0.1);
+}
+
+/* ── Dark theme ── */
+.carbon-tracking.dark-theme {
+  --bg-page: #36393f;
+  --bg-card: #202225;
+  --bg-surface: #42464e;
+  --bg-row-odd: #46494f;
+  --bg-row-even: #36393f;
+  --bg-total-row: #4f525a;
+  --bg-modal: #36393f;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-disclaimer: #2f3136;
+
+  --text-primary: #e0e0e0;
+  --text-heading: #fff;
+  --text-secondary: #888;
+  --text-tertiary: #666;
+  --text-muted: #ccc;
+
+  --border-primary: #202225;
+  --border-secondary: #2f3136;
+  --border-light: #42464e;
+  --border-filter: #555;
+
+  --accent-green: #00aa3c;
+  --accent-orange: #fb923c;
+  --accent-red: #ff5252;
+
+  --change-up-bg: rgba(255, 82, 82, 0.15);
+  --change-down-bg: rgba(0, 170, 60, 0.15);
+  --change-neutral-bg: rgba(136, 136, 136, 0.15);
+}

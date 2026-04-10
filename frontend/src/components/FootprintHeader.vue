@@ -42,14 +42,14 @@ defineEmits(['update:unit', 'show-info'])
 }
 
 .header-left h1 {
-  color: #fff;
+  color: var(--text-heading);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
 }
 
 .subtitle {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -62,9 +62,9 @@ defineEmits(['update:unit', 'show-info'])
 .info-btn {
   align-items: center;
   background: transparent;
-  border: 1px solid #2f3136;
+  border: 1px solid var(--border-secondary);
   border-radius: 50%;
-  color: #888;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   height: 32px;
@@ -73,7 +73,23 @@ defineEmits(['update:unit', 'show-info'])
 }
 
 .info-btn:hover {
-  border-color: #4a4a5e;
-  color: #fff;
+  border-color: var(--border-light);
+  color: var(--text-heading);
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .header-left {
+    width: 100%;
+  }
+
+  .header-right {
+    justify-content: space-between;
+    width: 100%;
+  }
 }
 </style>
