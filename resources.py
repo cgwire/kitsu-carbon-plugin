@@ -3,8 +3,14 @@ from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
 from zou.app.mixin import ArgsMixin
-from zou.app.services import projects_service, user_service
+from zou.app.services import projects_service
 from zou.app.utils import permissions
+
+try:
+    # Zou >= 1.0: access checks moved to permissions_service.
+    from zou.app.services.permissions_service import check_project_access
+except ImportError:
+    from zou.app.services.user_service import check_project_access
 
 from .models import CarbonFactor
 from . import services
@@ -337,7 +343,7 @@ class ProductionSequenceFootprintResource(MethodView, ArgsMixin):
             description: Project not found
         """
         self.check_id_parameter(project_id)
-        user_service.check_project_access(project_id)
+        check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
         data = services.get_sequence_footprint_data(project_id)
@@ -433,7 +439,7 @@ class ProductionEpisodeFootprintResource(MethodView, ArgsMixin):
             description: Project not found
         """
         self.check_id_parameter(project_id)
-        user_service.check_project_access(project_id)
+        check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
         data = services.get_episode_footprint_data(project_id)
@@ -529,7 +535,7 @@ class ProductionAssetFootprintResource(MethodView, ArgsMixin):
             description: Project not found
         """
         self.check_id_parameter(project_id)
-        user_service.check_project_access(project_id)
+        check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
         data = services.get_asset_footprint_data(project_id)
@@ -605,7 +611,7 @@ class ProductionTaskTypeFootprintResource(MethodView, ArgsMixin):
             description: Project not found
         """
         self.check_id_parameter(project_id)
-        user_service.check_project_access(project_id)
+        check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
         data = services.get_task_type_footprint_data(project_id)
@@ -675,7 +681,7 @@ class ProductionFootprintSummaryResource(MethodView, ArgsMixin):
             description: Project not found
         """
         self.check_id_parameter(project_id)
-        user_service.check_project_access(project_id)
+        check_project_access(project_id)
         project = projects_service.get_project(project_id)
 
         data = services.get_summary_footprint_data(project_id)
